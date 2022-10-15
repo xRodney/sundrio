@@ -48,7 +48,7 @@ public class TypeToTypeRef implements Function<Type, TypeRef> {
 
   @Override
   public TypeRef apply(Type item) {
-    if (item == null) {
+    if (item == null || item.equals(void.class)) {
       return new VoidRefBuilder().build();
     } else if (item instanceof WildcardType) {
       return new WildcardRefBuilder().withBounds(Arrays.asList(((WildcardType) item).getLowerBounds()).stream()

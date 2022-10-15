@@ -35,6 +35,8 @@ import io.sundr.adapter.api.Adapters;
 import io.sundr.adapter.testing.general.ClassWithAnnotation;
 import io.sundr.adapter.testing.general.ClassWithAnnotation2;
 import io.sundr.adapter.testing.general.ClassWithArray;
+import io.sundr.adapter.testing.general.ClassWithClassAnnotation;
+import io.sundr.adapter.testing.general.ClassWithClassAnnotation2;
 import io.sundr.adapter.testing.general.ClassWithNestedAnnotation;
 import io.sundr.adapter.testing.general.ClassWithNestedAnnotation2;
 import io.sundr.adapter.testing.general.ClassWithParam;
@@ -53,6 +55,7 @@ import io.sundr.model.Property;
 import io.sundr.model.RichTypeDef;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeRef;
+import io.sundr.model.VoidRef;
 import io.sundr.model.functions.GetDefinition;
 import io.sundr.model.utils.TypeArguments;
 import io.sundr.model.utils.Types;
@@ -194,6 +197,34 @@ public abstract class AbstractAdapterTest<T> {
   }
 
   @Test
+  public void testClassWithClassAnnotationParams() {
+    T input = getInput(ClassWithClassAnnotation.class);
+    TypeDef typeDef = Adapters.adaptType(input, getContext());
+    final List<Property> properties = typeDef.getProperties();
+    final Property foo = properties.stream().filter(p -> p.getName().equals("foo")).findFirst()
+        .orElseThrow(RuntimeException::new);
+
+    List<AnnotationRef> annotations = foo.getAnnotations();
+    assertEquals(1, annotations.size());
+    AnnotationRef annotationRef = annotations.get(0);
+    assertTrue(annotationRef.toString().contains("ClassAnnotation"));
+    Object value = annotationRef.getParameters().get("value");
+    assertTrue("Class annotation is converted", value instanceof ClassRef);
+    TypeRef typeRef = (TypeRef) value;
+    assertEquals("String", typeRef.getName());
+
+    final Method bar = typeDef.getMethods().stream().filter(p -> p.getName().equals("bar")).findFirst()
+        .orElseThrow(RuntimeException::new);
+    annotations = bar.getAnnotations();
+    assertEquals(1, annotations.size());
+    annotationRef = annotations.get(0);
+    value = annotationRef.getParameters().get("value");
+    assertTrue("Class annotation is converted", value instanceof VoidRef);
+    typeRef = (TypeRef) value;
+    assertEquals("void", typeRef.getName());
+  }
+
+  @Test
   public void testClassWithClassAnnotations() {
     T input = getInput(ClassWithAnnotation2.class);
     TypeDef typeDef = Adapters.adaptType(input, getContext());
@@ -216,6 +247,20 @@ public abstract class AbstractAdapterTest<T> {
     assertTrue("Nested annotation is converted", value instanceof AnnotationRef);
     AnnotationRef nestedAnnotationRef = (AnnotationRef) value;
     assertEquals("test", nestedAnnotationRef.getParameters().get("value"));
+  }
+
+  @Test
+  public void testClassWithClassParamsAnnotations() {
+    T input = getInput(ClassWithClassAnnotation2.class);
+    TypeDef typeDef = Adapters.adaptType(input, getContext());
+    List<AnnotationRef> annotations = typeDef.getAnnotations();
+    assertEquals(1, annotations.size());
+    AnnotationRef annotationRef = annotations.get(0);
+    assertTrue(annotationRef.toString().contains("ClassAnnotation"));
+    Object value = annotationRef.getParameters().get("value");
+    assertTrue("Class annotation is converted", value instanceof PrimitiveRef);
+    PrimitiveRef value1 = (PrimitiveRef) value;
+    assertEquals("int", value1.getName());
   }
 
   //

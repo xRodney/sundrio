@@ -256,6 +256,8 @@ public class ClassToTypeDef implements Function<Class, TypeDef> {
         final Object value = method.invoke(annotation, (Object[]) null);
         if (value instanceof Annotation) {
           parameters.put(name, processAnnotation((Annotation) value));
+        } else if (value instanceof Class) {
+          parameters.put(name, typeToTypeRef.apply((Class<?>) value));
         } else {
           parameters.put(name, value);
         }
